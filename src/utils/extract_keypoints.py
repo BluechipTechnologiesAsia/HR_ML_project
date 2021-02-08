@@ -10,7 +10,9 @@ from re import sub
 # global list of stop words
 STOPWORDS = set(stopwords.words("english"))
 # global list of recommended clubs
-CLUBS = ["AIESEC", "Rotract", "Gavel", "LED", "LEO", "Mora SPIRIT", "IEASL", "Interact", "Model United Nations", "Moot Court"] 
+CLUBS = ["AIESEC", "Rotract", "Gavel", "LED", "LEO", "Mora SPIRIT", "IEASL",
+         "Interact", "Model United Nations", "Moot Court"]
+
 
 def cleanup_bulletpoints(sentence):
     """Removes non alphanumeric characters
@@ -33,26 +35,47 @@ def normal_search(sentence):
     """search if any keyword is mentioned in the
     sentence (normal)
     """
+    global CLUBS
     score = 0
-    keyword = set(["AISEC"])
-    if keyword in word_tokenize(sentence):
-        score += 1
+    for word in word_tokenize(sentence):
+        if word in CLUBS[:3]:
+            score += 3
+        elif word in CLUBS[3:6]:
+            score += 2
+        elif word in CLUBS[6:]:
+            score += 1
+        else:
+            pass
     return score
 
 
 def advanced_search(sentence):
-    """search if any keyword is mentioned in the 
+    """search if any keyword is mentioned in the
     sentence (advanced)
     TODO: edit this part
+    TODO: explain how the scoring works
     """
+    score = 0
     words = word_tokenize(sentence)
     tagged = pos_tag(words)
     namedEnt = ne_chunk(tagged)
-    return {(" ".join(c[0] for c in chunk), chunk.label())for chunk in namedEnt if hasattr(chunk,'label')}
+    tree = list({(" ".join(c[0] for c in chunk), chunk.label())
+                 for chunk in namedEnt if hasattr(chunk, 'label')})
+    for name, entity in tree:
+        if entity == "ORGANIZATION":
+            score += normal_search(name)
+    return (10 if score > 10 else score)
+
 
 if __name__ == "__main__":
-    sentence = """Vice President(External Relations)- Blue Marble Project- AIESEC University of Peradeniy Vice President, Committee member - Human Resource Guild - Faculty of Management - University of Peradeniya Active member of AIESEC University of Peradeniya A member of the Rotaract Club - University of Peradeniya Member of Faculty Toastmasters Club Senior committee member - Broadcasting Unit - Visakha Vidyalaya Junior prefect Vice President - English Literary Association Committee member - School Buddhist Association Member of school debating and Shakespeare drama crew
-    """
+    sentence = """Vice President(External Relations)- Blue Marble Project-
+    AIESEC University of Peradeniy Vice President, Committee member - Human
+    Resource Guild - Faculty of Management - University of Peradeniya Active
+    member of AIESEC University of Peradeniya A member of the Rotaract Club -
+    University of Peradeniya Member of Faculty Toastmasters Club Senior
+    committee member - Broadcasting Unit - Visakha Vidyalaya Junior prefect
+    Vice President - English Literary Association Committee member - School
+    Buddhist Association Member of school debating and Shakespeare drama
+    crew"""
     filter_sentence = cleanup_sentence(cleanup_bulletpoints(sentence))
     print(advanced_search(filter_sentence))
-    
