@@ -49,8 +49,8 @@ def advanced_search_sport(sentence):
 
 
 def sports_main(sentence):
-    """Returns a score
-    add more here
+    """Main function
+    Returns advanced score
     """
     sentence = cleanup_brackets(sentence)
     filter_sentence = cleanup_sentence(cleanup_bulletpoints(sentence))
